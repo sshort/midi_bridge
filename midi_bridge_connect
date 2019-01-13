@@ -1,0 +1,88 @@
+#!/usr/bin/python3
+# -*-python-*-
+
+import os
+import sys
+import re
+import subprocess
+from os.path import expanduser
+from pwd import getpwnam
+from grp import getgrnam
+
+import glob
+import syslog
+# from string import split
+import mido
+
+import usb.core
+
+mido.set_backend( 'mido.backends.rtmidi' )
+
+####### Start User Edits #########
+
+# Input MIDI device
+input_midi_tokens = ( 'MD-BT01', 'Bluetooth' )
+
+# Ouput MIDI device
+output_midi_tokens = ( 'KATANA', 'MIDI 1' )
+
+######## End User Edits ##########
+
+def find_midi_devices():
+    input_midi_device = None
+    for name in mido.get_input_names():
+        if input_midi_tokens[0] in name and input_midi_tokens[1] in name:
+            input_midi_device = name
+            break
+
+    if input_midi_device == None:
+        syslog.syslog( "%d: Cannot find input MIDI device" % pid )
+
+    output_midi_device = None
+    for name in mido.get_output_names():
+        if output_midi_tokens[0] in name and output_midi_tokens[1] in name:
+            output_midi_device = name
+            break
+
+    if output_midi_device == None:
+        syslog.syslog( "%d: Cannot find output MIDI device" % pid )
+
+    return input_midi_device, output_midi_device
+
+#Input device =  MD-BT01:MD-BT01 Bluetooth 128:0
+#Output device =  KATANA:KATANA MIDI 1 24:0
+
+port_regex = re.compile('(\d+:\d+)\s*$')
+
+def get_port_from_name(name):
+    match = port_regex.search(name)
+    if match:
+        return match.group(0)
+
+    return 'Not a recognised port name'
+
+
+pid = os.getpid()
+input_midi_device, output_midi_device = find_midi_devices()
+
+input_port = get_port_from_name(input_midi_device)
+output_port = get_port_from_name(output_midi_device)
+
+#print ("Input device = ", input_port)
+#print ("Output device = ", output_port)
+
+#input_device_info = mido.get_device_info(input_midi_device)
+#output_device_info = mido.get_device_info(output_midi_device)
+
+# syslog.syslog( "%d: Check for path /proc/%s" % (pid, oldpid) )
+
+# Set path for support modules
+os.environ['PYTHONPATH'] = "/usr/local/share/midi"
+
+syslog.syslog( "%d: Connecting MIDI port %s to port %s" % (pid, input_port, output_port) )
+#print ( "%d: Connecting MIDI device %s to %s" % (pid, input_midi_device, output_midi_device) )
+
+# aconnect 128:0 24:0
+#os.execl( "/usr/bin/aconnect", input_port, output_port )
+
+subprocess.run(["/usr/bin/aconnect", input_port, output_port])

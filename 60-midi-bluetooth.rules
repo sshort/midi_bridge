@@ -1,0 +1,2 @@
+ACTION=="add", SUBSYSTEM=="bluetooth", RUN+="/usr/local/bin/midi_bridge_connect"
+#ACTION=="remove", SUBSYSTEM=="bluetooth", RUN+="/usr/local/bin/midi_bridge_disconnect"
