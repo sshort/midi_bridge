@@ -63,6 +63,9 @@ def get_port_from_name(name):
 
 
 pid = os.getpid()
+
+syslog.syslog( "%d: Checking MIDI devices" % (pid) )
+
 input_midi_device, output_midi_device = find_midi_devices()
 
 input_port = get_port_from_name(input_midi_device)
